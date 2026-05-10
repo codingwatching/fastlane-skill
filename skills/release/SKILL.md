@@ -39,8 +39,8 @@ Submit the iOS app to App Store Connect for review and release.
 ## Commands
 
 ### Submit Existing TestFlight Build
+Run from your project directory (where `fastlane/` lives):
 ```bash
-cd project/product/swiftui-ios-app  # or your fastlane directory
 fastlane release
 ```
 

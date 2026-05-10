@@ -36,8 +36,7 @@ Create a **private** repository to store your encrypted certificates:
 
 ```bash
 # GitHub CLI (recommended)
-gh repo create certificates --private --clone
-cd certificates && cd ..
+gh repo create certificates --private
 
 # Or manually at github.com/new (select Private)
 ```
@@ -175,7 +174,7 @@ FASTLANE_USER="your@appleid.com"
 FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
 
 # Method 2: API Key (recommended for CI)
-APP_STORE_CONNECT_API_KEY_ID="ABC123"
+APP_STORE_CONNECT_API_KEY_KEY_ID="ABC123"
 APP_STORE_CONNECT_API_KEY_ISSUER_ID="xyz-xyz-xyz"
 APP_STORE_CONNECT_API_KEY_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
@@ -225,9 +224,9 @@ team_id("ABCD1234")
 ```
 
 ### "Unable to find app with bundle identifier"
-Register the app first:
+Register the app first (SKU and username are required):
 ```bash
-fastlane produce create -a com.yourcompany.app -n "Your App Name"
+fastlane produce create -u your@appleid.com -a com.yourcompany.app -n "Your App Name" --sku YOUR_SKU
 ```
 
 ---

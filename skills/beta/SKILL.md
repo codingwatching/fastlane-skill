@@ -1,7 +1,7 @@
 ---
 name: beta
 description: Build and upload iOS app to TestFlight
-argument-hint: [--skip-build-increment] [--external] [--changelog "text"]
+argument-hint: [skip_build_increment:true] [changelog:"text"]
 allowed-tools: Bash, Read
 ---
 
@@ -31,8 +31,8 @@ Build and upload the iOS app to TestFlight for beta testing.
 ## Commands
 
 ### Standard Beta (Internal Testers)
+Run from your project directory (where `fastlane/` lives):
 ```bash
-cd project/product/swiftui-ios-app  # or your fastlane directory
 fastlane beta
 ```
 

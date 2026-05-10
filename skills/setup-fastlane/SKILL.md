@@ -65,18 +65,48 @@ platform :ios do
     scan(scheme: "{{SCHEME}}")
   end
 
-  desc "Upload to TestFlight"
-  lane :beta do
-    increment_build_number
+  desc "Upload to TestFlight (internal testers)"
+  lane :beta do |options|
+    increment_build_number unless options[:skip_build_increment]
     gym(scheme: "{{SCHEME}}", export_method: "app-store")
     pilot(skip_waiting_for_build_processing: true)
   end
 
-  desc "Submit to App Store"
-  lane :release do
+  desc "Upload to TestFlight and distribute to external testers"
+  lane :beta_external do |options|
     increment_build_number
     gym(scheme: "{{SCHEME}}", export_method: "app-store")
-    deliver(submit_for_review: false, force: true)
+    pilot(
+      distribute_external: true,
+      groups: ["External Testers"],
+      changelog: options[:changelog] || "Bug fixes and improvements",
+      skip_waiting_for_build_processing: false
+    )
+  end
+
+  desc "Submit the latest TestFlight build for App Store review"
+  lane :release do
+    deliver(
+      build_number: latest_testflight_build_number.to_s,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false
+    )
+  end
+
+  desc "Build, upload, and submit a fresh build to the App Store"
+  lane :release_full do |options|
+    increment_version_number(version_number: options[:version]) if options[:version]
+    increment_build_number
+    gym(scheme: "{{SCHEME}}", export_method: "app-store")
+    deliver(
+      submit_for_review: true,
+      automatic_release: options[:auto_release] == true,
+      force: true
+    )
   end
 end
 ```

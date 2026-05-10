@@ -108,7 +108,7 @@ Navigate to your iOS/macOS project and ask Claude naturally:
 | `beta` | One command TestFlight uploads | 30 min/release | [→](skills/beta/SKILL.md) |
 | `release` | App Store submission workflow | 1 hour | [→](skills/release/SKILL.md) |
 | `match` | Team code signing setup | 4-6 hours | [→](skills/match/SKILL.md) |
-| `snapshot` | Automated screenshots (50+ images) | 3-4 hours | [→](skills/snapshot/SKILL.md) |
+| `snapshot` | Automated screenshots across devices and languages | 3-4 hours | [→](skills/snapshot/SKILL.md) |
 
 ## After Setup
 
