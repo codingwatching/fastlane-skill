@@ -217,7 +217,7 @@ can't read) and keeps the pipeline scriptable.
 
 ### Auth
 
-`deliver` needs App Store Connect credentials. For non-interactive/CI runs, configure an **App Store Connect API key** (`.p8`) — see the `match` / `release` skills. With only an Apple ID it falls back to **interactive 2FA**, which can't be scripted.
+`deliver` needs App Store Connect credentials. For non-interactive/CI runs, configure an **App Store Connect API key** (`.p8`) — see the `match` skill's CI/CD section. With only an Apple ID it falls back to **interactive 2FA**, which can't be scripted.
 
 ---
 

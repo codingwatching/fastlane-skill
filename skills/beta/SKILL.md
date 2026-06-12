@@ -20,11 +20,11 @@ Build and upload the iOS app to TestFlight for beta testing.
 
 ## What This Does
 
-1. **Syncs certificates** via Match (appstore type)
+1. **Syncs certificates** via Match (appstore type) — *only once you've run the `match` skill; the base `setup-fastlane` lane skips this*
 2. **Increments build number** (unless `--skip-build-increment`)
 3. **Builds release archive** with gym
 4. **Uploads to TestFlight** via pilot
-5. **Optionally distributes to external testers** (if `--external`)
+5. **Optionally distributes to external testers** (via the separate `beta_external` lane)
 
 ---
 

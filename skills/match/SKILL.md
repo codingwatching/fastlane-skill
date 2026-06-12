@@ -118,8 +118,15 @@ platform :ios do
     match(type: "appstore")
   end
 
+  desc "Install signing assets on CI (read-only)"
+  lane :certificates do
+    setup_ci                                 # temp keychain on CI; no-op locally
+    match(type: "appstore", readonly: true)
+  end
+
   desc "Build for TestFlight"
   lane :beta do |options|
+    setup_ci                                 # temp keychain on CI; no-op locally
     match(type: "appstore", readonly: true)
     increment_build_number unless options[:skip_build_increment]
     gym(scheme: "YourApp", export_method: "app-store")
@@ -128,6 +135,7 @@ platform :ios do
 
   desc "Build for App Store"
   lane :release do
+    setup_ci                                 # temp keychain on CI; no-op locally
     match(type: "appstore", readonly: true)
     increment_build_number
     gym(scheme: "YourApp", export_method: "app-store")
@@ -137,6 +145,8 @@ end
 ```
 
 **Key pattern**: Use `readonly: true` in build lanes to prevent accidental certificate regeneration.
+
+**CI keychain**: `setup_ci` creates a temporary keychain on CI runners (and is a no-op locally) so `match` can import certs without keychain-permission errors. Call it before `match` in any lane that runs on CI.
 
 ---
 
@@ -183,7 +193,7 @@ APP_STORE_CONNECT_API_KEY_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVAT
 
 ```yaml
 - name: Install certificates
-  run: fastlane match appstore --readonly
+  run: fastlane ios certificates   # runs setup_ci + match(readonly: true)
   env:
     MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
     MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
@@ -195,7 +205,7 @@ Add to `ci_scripts/ci_post_clone.sh`:
 ```bash
 # Install Fastlane and sync certificates
 brew install fastlane
-fastlane match appstore --readonly
+fastlane ios certificates   # setup_ci + match(readonly: true)
 ```
 
 Set `MATCH_PASSWORD` in Xcode Cloud environment variables.
