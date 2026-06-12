@@ -184,6 +184,30 @@ end
 > (`ERROR ITMS-90475` / `IMAGE_ALPHA_NOT_ALLOWED`). Web/`toPng` framers usually add
 > one — flatten before upload: `magick in.png -alpha remove -alpha off out.png`.
 
+**If your framer is a full editor (not a static page),** don't hand-click its
+browser "Export bundle" button — that isn't repeatable and dumps a zip in the
+editor's own nested layout. Instead, expose a tiny **dev-only export hook** on
+`window` that reuses the editor's existing capture function (it already knows the
+exact per-size `toPng` render), then drive it with headless Chrome:
+
+```js
+// in the editor (dev only): loop slides × required sizes through the UI's own
+// captureSlide(), return base64 PNGs — no zip, no download dialog.
+window.__exportFramed = async () => {/* … returns [{name, dataUrl}] */};
+```
+```js
+// driver (puppeteer-core → system Chrome): call the hook, flatten, write flat.
+const items = await page.evaluate(() => window.__exportFramed());
+for (const { name, dataUrl } of items)
+  execFileSync("magick", ["png:-","-alpha","remove","-alpha","off", out(name)],
+              { input: Buffer.from(dataUrl.split(",")[1], "base64") });
+```
+
+One command regenerates the whole set into your canonical output dir, already
+RGB — then point the `upload_framed_screenshots` lane above at that dir. This
+beats the editor's bundle button (which still emits RGBA in a layout `deliver`
+can't read) and keeps the pipeline scriptable.
+
 ### What `deliver` does NOT upload
 
 `deliver` handles **app-level** metadata + screenshots only. It does **not** touch:
