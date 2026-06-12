@@ -156,15 +156,68 @@ Screenshots are saved to `fastlane/screenshots/{language}/{device}/`.
 
 ## Step 5: Upload to App Store Connect
 
-After capturing, upload with deliver:
+After capturing, upload with `deliver`:
 
 ```bash
-# Upload screenshots only (no binary)
-fastlane deliver --skip_binary_upload --skip_metadata
-
-# Or use the screenshots lane from setup-fastlane
-fastlane ios screenshots
+# Upload screenshots only (no binary, no metadata)
+fastlane deliver --skip_binary_upload --skip_metadata --overwrite_screenshots
 ```
+
+`deliver` reads `fastlane/screenshots/<locale>/`, maps each PNG to a display size by its **pixel dimensions**, and orders them by **filename sort** — so prefix names (`01_`, `02_`, …).
+
+### Uploading screenshots you framed yourself
+
+If you frame with your own pipeline (a design tool, a web framer) instead of `frameit`, `deliver` can still upload them — stage them into the `<locale>/` layout and let dimension-mapping place them:
+
+```ruby
+lane :upload_framed_screenshots do
+  framed  = File.expand_path("../path/to/your/framed", __dir__)
+  staging = File.expand_path("./screenshots/en-US", __dir__)   # deliver wants <locale>/
+  FileUtils.rm_rf(File.dirname(staging)); FileUtils.mkdir_p(staging)
+  FileUtils.cp(Dir.glob("#{framed}/*.png"), staging)
+  deliver(skip_binary_upload: true, skip_metadata: true,
+          skip_screenshots: false, overwrite_screenshots: true, force: true)
+end
+```
+
+> **RGB only — no alpha.** App Store rejects screenshots with an alpha channel
+> (`ERROR ITMS-90475` / `IMAGE_ALPHA_NOT_ALLOWED`). Web/`toPng` framers usually add
+> one — flatten before upload: `magick in.png -alpha remove -alpha off out.png`.
+
+**If your framer is a full editor (not a static page),** don't hand-click its
+browser "Export bundle" button — that isn't repeatable and dumps a zip in the
+editor's own nested layout. Instead, expose a tiny **dev-only export hook** on
+`window` that reuses the editor's existing capture function (it already knows the
+exact per-size `toPng` render), then drive it with headless Chrome:
+
+```js
+// in the editor (dev only): loop slides × required sizes through the UI's own
+// captureSlide(), return base64 PNGs — no zip, no download dialog.
+window.__exportFramed = async () => {/* … returns [{name, dataUrl}] */};
+```
+```js
+// driver (puppeteer-core → system Chrome): call the hook, flatten, write flat.
+const items = await page.evaluate(() => window.__exportFramed());
+for (const { name, dataUrl } of items)
+  execFileSync("magick", ["png:-","-alpha","remove","-alpha","off", out(name)],
+              { input: Buffer.from(dataUrl.split(",")[1], "base64") });
+```
+
+One command regenerates the whole set into your canonical output dir, already
+RGB — then point the `upload_framed_screenshots` lane above at that dir. This
+beats the editor's bundle button (which still emits RGBA in a layout `deliver`
+can't read) and keeps the pipeline scriptable.
+
+### What `deliver` does NOT upload
+
+`deliver` handles **app-level** metadata + screenshots only. It does **not** touch:
+
+- **In-app-purchase / subscription assets** — the per-IAP *Review Information → Screenshot* and the 1024×1024 *Image (Optional)* promo. Upload these **by hand** in App Store Connect (no turnkey fastlane action; the raw ASC API is the only alternative).
+- **App icon** — comes from the uploaded **build** (the `AppIcon` asset catalog), never a separate upload.
+
+### Auth
+
+`deliver` needs App Store Connect credentials. For non-interactive/CI runs, configure an **App Store Connect API key** (`.p8`) — see the `match` / `release` skills. With only an Apple ID it falls back to **interactive 2FA**, which can't be scripted.
 
 ---
 
@@ -259,6 +312,10 @@ button.accessibilityIdentifier = "settingsButton"
 // In UI test
 app.buttons["settingsButton"].tap()
 ```
+
+### Paywall/price screenshots show the wrong currency
+
+Under any automated run (`xcodebuild`, `fastlane snapshot`, `simctl`), StoreKit renders `Product.displayPrice` from the **US storefront** — regardless of the device region or the `.storekit` `_storefront`/`_locale`. Only the Xcode IDE **Run** button honours a configured storefront, and that can't be scripted. To screenshot a price in another currency, render it from your own region/pricing source behind a `#if DEBUG`, launch-arg-gated hook instead of relying on live StoreKit.
 
 ---
 

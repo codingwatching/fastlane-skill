@@ -34,6 +34,12 @@ Submit the iOS app to App Store Connect for review and release.
 6. **Submits for review**
 7. **Auto-releases after approval** (if `auto_release:true`)
 
+> **Scope:** `release` / `release_full` upload the **binary + app-level metadata/screenshots**.
+> They do **not** upload **in-app-purchase / subscription assets** (per-IAP *Review
+> Information → Screenshot*, 1024² *Image (Optional)* promos) — those are managed by hand
+> in App Store Connect. See the `snapshot` skill for screenshot upload details
+> (`deliver` layout, RGB/no-alpha, what it does and doesn't cover).
+
 ---
 
 ## Commands
