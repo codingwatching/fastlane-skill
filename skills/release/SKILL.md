@@ -26,7 +26,7 @@ Submit the iOS app to App Store Connect for review and release.
 3. Ideal when you've already tested a beta build
 
 ### `fastlane release_full` (Full Pipeline)
-1. **Syncs certificates** via Match (appstore type)
+1. **Syncs certificates** via Match (appstore type) — *only once you've run the `match` skill; the base `setup-fastlane` lane skips this*
 2. **Bumps version number** (if `version:` provided)
 3. **Increments build number**
 4. **Builds release archive** with gym
